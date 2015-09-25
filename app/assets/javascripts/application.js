@@ -30,12 +30,12 @@
 //= require flatty/plugins/select2/select2.js
 //= require jquery_ujs
 
-//= require d3
+
 
 //= require moment.min
 
 
-//= require fullcalendar
+
 //= require jquery.dataTables.js
 
 //= require select-club.js
