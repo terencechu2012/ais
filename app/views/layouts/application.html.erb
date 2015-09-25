@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>AIS</title>
+		<meta content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no' name='viewport'>
+		<%= favicon_link_tag(source='/favicon.ico')%>
+		<%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track' => true %>
+		<%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
+		<style>
+			header .navbar {
+				padding-right: 0 !important;
+			}
+		</style>
+		<%= csrf_meta_tags %>
+		<% role = session[:role]
+      role ||= ''
+%>
+	</head>
+	<body class="contrast-sea-blue without-footer">
+		<header>
+			<nav class='navbar navbar-default'>
+				<a class='navbar-brand hidden-xs' href='#'> AIS </a>
+				<a class='toggle-nav btn pull-left' href='#'> <i class='icon-reorder'></i> </a>
+
+				<% if session[:userid] !=nil %>
+				<!-- If user is on this layout because he/she forgets password and led here by devise passwordController -->
+				<ul class='nav'>
+
+					<li id="select-club-menu" class="dropdown medium dark user-menu">
+						<a class='dropdown-toggle' data-toggle='dropdown' href='#'> <i class='icon-gears'></i> <span class="user-name">View As</span> <b class='caret'></b> </a>
+						<ul class="dropdown-menu">
+							<% clubids = Clubusers.find_by_sql(["select distinct clubid from clubusers where userid = ?", session[:userid]])
+              session_clubid = session[:club]
+%>
+							<% clubids.each do |item|
+							css_class = ""
+							css_class = "selected" if item.clubid.upcase.eql?(session_clubid.upcase)
+							%>
+							<li class='<%= css_class %>'>
+								<%= link_to item.clubid.upcase, {:controller => "admin", :action => "selectClub", :selected_club_id => item.clubid.downcase} %>
+							</li>
+							<% end %>
+						</ul>
+
+					</li>
+
+					<li class='dropdown dark user-menu'>
+						<a class='dropdown-toggle' data-toggle='dropdown' href='#'> <img width="23" height="23" alt="" src="" /> <span class='user-name'><%= session[:userid]%></span> <b class='caret'></b> </a>
+						<ul class='dropdown-menu'>
+							<li>
+								<a href='/users/edit'> <i class='icon-cog'></i> Change Password </a>
+							</li>
+							<li>
+								<a href='/admin/setnric'> <i class='icon-user'></i> Profile </a>
+							</li>
+							<li class='divider'></li>
+							<li>
+								<%= link_to raw("<i class='icon-signout'></i> Sign out"), destroy_user_session_path, :method => :get %>
+							</li>
+						</ul>
+					</li>
+				</ul>
+				<% end %>
+			</nav>
+		</header>
+
+		<div id='wrapper'>
+			<div id='main-nav-bg'></div>
+
+			<nav id='main-nav'>
+				<div class='navigation'>
+					<ul class='nav nav-stacked'>
+						<!-- <li class=''>
+							<a href='/graphs/main'> <i class='icon-dashboard'></i> <span>First</span> </a>
+						</li>
+						<li>
+									<a class="dropdown-collapse in" href="#"> <i class="icon-circle-blank"></i> <span style="font-weight:bold;">Second</span> <i class="icon-angle-down angle-down"></i> </a>
+									<ul class="nav nav-collapse">
+										<%for i in 1..13%>
+										<li class=''>
+											<a href='/graphs/main2?x=<%=i%>'> <i class='icon-copy'></i> <span><%=(i-1)*50+1%>-<%=i*50%></span> </a>
+										</li>
+										<%end%>
+										<li class=''>
+											<a href='/graphs/main2?x=100'> <i class='icon-copy'></i> <span>First 50 with Paranormal Activity</span> </a>
+										</li>
+										
+									</ul>
+								</li> -->
+						<li class=''>
+							<a href='/claims/newclaim'> <i class='icon-dashboard'></i> <span>New Claim</span> </a>
+						</li>
+						<li class=''>
+							<a href="javascript:history.back()"><i class="icon-step-backward"></i><span style="font-weight:bold;">Back</span></a>
+						</li>
+					</ul>
+				</div>
+			</nav>
+
+			<section id='content'>
+
+				<div class='container'>
+					<div class='row' id='content-wrapper'>
+						<div class='col-xs-12'>
+							<% if !notice.nil? && !notice.empty? %>
+							<!-- <span class="alert alert-info"><%= notice %></span> -->
+							<div class='modal fade' id='modal-notice' tabindex='-1'>
+								<div class='modal-dialog'>
+									<div class='modal-content'>
+										<div class='modal-header'>
+											<button aria-hidden='true' class='close' data-dismiss='modal' type='button'>
+												×
+											</button>
+											<h4 class='modal-title' id='myModalLabel'>Notice</h4>
+										</div>
+										<div class='modal-body'>
+											<%= notice %>
+											<div class='modal-footer'>
+												<button class='btn btn-default' data-dismiss='modal' type='button'>
+													Close
+												</button>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<script>
+								$('#modal-notice').modal('show');
+							</script>
+							<% end %>
+							<% if !alert.nil? && !alert.empty? %>
+							<!-- <span class="alert alert-warning"><%= alert %></span> -->
+							<div class='modal fade' id='modal-alert' tabindex='-1'>
+								<div class='modal-dialog'>
+									<div class='modal-content'>
+										<div class='modal-header'>
+											<button aria-hidden='true' class='close' data-dismiss='modal' type='button'>
+												×
+											</button>
+											<h4 class='modal-title' id='myModalLabel'>Alert!</h4>
+										</div>
+										<div class='modal-body'>
+											<%= alert %>
+											<div class='modal-footer'>
+												<button class='btn btn-default' data-dismiss='modal' type='button'>
+													Close
+												</button>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<script>
+								$('#modal-alert').modal('show');
+							</script>
+							<% end %>
+							<% if flash[:error] %>
+							<div class='modal fade' id='modal-error' tabindex='-1'>
+								<div class='modal-dialog'>
+									<div class='modal-content'>
+										<div class='modal-header'>
+											<button aria-hidden='true' class='close' data-dismiss='modal' type='button'>
+												×
+											</button>
+											<h4 class='modal-title' id='myModalLabel'>Error in processing!</h4>
+										</div>
+										<div class='modal-body'>
+											<%= flash[:error] %>
+											<div class='modal-footer'>
+												<button class='btn btn-default' data-dismiss='modal' type='button'>
+													Close
+												</button>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<script>
+								$('#modal-error').modal('show');
+							</script>
+							<% end %>
+							<% if flash[:success] %>
+							<div class='modal fade' id='modal-success' tabindex='-1'>
+								<div class='modal-dialog'>
+									<div class='modal-content'>
+										<div class='modal-header'>
+											<button aria-hidden='true' class='close' data-dismiss='modal' type='button'>
+												×
+											</button>
+											<h4 class='modal-title' id='myModalLabel'>Success!</h4>
+										</div>
+										<div class='modal-body'>
+											<%= flash[:success] %>
+											<div class='modal-footer'>
+												<button class='btn btn-default' data-dismiss='modal' type='button'>
+													Close
+												</button>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<script>
+								$('#modal-success').modal('show');
+							</script>
+							<% end %>
+							<%= yield %>
+
+						</div>
+					</div>
+				</div>
+			</section>
+		</div>
+
+	</body>
+
+</html>
